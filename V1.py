@@ -4,8 +4,9 @@ import json
 import html
 import xmltodict
 
+# PARTIE 1
 # Question 1.1
-docs = []
+docs_hacker_news = []
 
 URL = "https://hn.algolia.com/api/v1/search?"
 params = {
@@ -35,11 +36,17 @@ for article in data["hits"]:
     if article.get("story_text"):
         article["story_text"] = article["story_text"].replace("<p>", " ")
         article["story_text"] = html.unescape(article["story_text"])
-        docs.append(article["story_text"])
+        docs_hacker_news.append(article["story_text"])
     else:
-        docs.append(article["title"])
+        docs_hacker_news.append(article["title"])
+
+print("Liste des articles :")
+for i in range(len(docs_hacker_news)):
+    print(f"{i+1} - {docs_hacker_news[i]}")
 
 # Question 1.2
+docs_arxiv = []
+
 URL = "https://export.arxiv.org/api/query?"
 params = {
     "search_query" : "all:cats",
@@ -68,10 +75,34 @@ data = xmltodict.parse(data)
 for article in data["feed"]["entry"]:
     if article.get("summary"):
         article["summary"] = article["summary"].replace("\n", " ")
-        docs.append(article["summary"])
+        docs_arxiv.append(article["summary"])
     else:
-        docs.append(article["title"])
+        docs_arxiv.append(article["title"])
 
 print("Liste des articles :")
-for i in range(len(docs)):
-    print(f"{i+1} - {docs[i]}")
+for i in range(len(docs_arxiv)):
+    print(f"{i+1} - {docs_arxiv[i]}")
+
+# PARTIE 2
+# Question 2.1
+import pandas as pd
+
+texte = docs_hacker_news + docs_arxiv
+identifiant = [i+1 for i in range(len(texte))]
+origine = []
+
+for article in docs_hacker_news:
+    origine.append("hackernews")
+
+for article in docs_arxiv:
+    origine.append("arxiv")
+
+df = pd.DataFrame({"id":identifiant, "texte":texte, "origine":origine})
+
+#print(df)
+
+# Question 2.2
+df.to_csv("corpus.csv", sep='\t', index=False)
+
+# Question 2.3
+df = pd.read_csv("corpus.csv", sep='\t')
