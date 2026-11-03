@@ -3,8 +3,9 @@ import urllib.request as urlr
 import json
 import html
 import xmltodict
+import pandas as pd
 
-# PARTIE 1
+'''# PARTIE 1
 # Question 1.1
 docs_hacker_news = []
 
@@ -85,8 +86,6 @@ for i in range(len(docs_arxiv)):
 
 # PARTIE 2
 # Question 2.1
-import pandas as pd
-
 texte = docs_hacker_news + docs_arxiv
 identifiant = [i+1 for i in range(len(texte))]
 origine = []
@@ -102,7 +101,32 @@ df = pd.DataFrame({"id":identifiant, "texte":texte, "origine":origine})
 #print(df)
 
 # Question 2.2
-df.to_csv("corpus.csv", sep='\t', index=False)
+df.to_csv("corpus.csv", sep='\t', index=False)'''
 
 # Question 2.3
 df = pd.read_csv("corpus.csv", sep='\t')
+
+# PARTIE 3
+# Question 3.1
+print(f"Le nombre de documents du corpus est de : {df.shape[0]}")
+
+# Question 3.2
+for i, ligne in enumerate(df["texte"]):
+    mots = 0
+    phrases = 0
+    if "." in ligne:
+        ligne = ligne.split(".")
+        for phrase in ligne:
+            if phrase.strip():
+                phrases += 1
+                phrase = phrase.split()
+                mots += len(phrase)
+        print(f"Document {i+1} : {mots} mots, {phrases} phrases")
+    else:
+        ligne = ligne.split()
+        mots += len(ligne)
+        phrases += 1
+        print(f"Document {i} : {mots} mots, {phrases} phrase")
+
+print(f"Le nombre de mots dans le texte est de : {mots}")
+print(f"Le nombre de phrases dans le texte est de : {phrases}")
