@@ -105,6 +105,7 @@ df.to_csv("corpus.csv", sep='\t', index=False)'''
 
 # Question 2.3
 df = pd.read_csv("corpus.csv", sep='\t')
+#print(df)
 
 # PARTIE 3
 # Question 3.1
@@ -126,7 +127,12 @@ for i, ligne in enumerate(df["texte"]):
         ligne = ligne.split()
         mots += len(ligne)
         phrases += 1
-        print(f"Document {i} : {mots} mots, {phrases} phrase")
+        print(f"Document {i+1} : {mots} mots, {phrases} phrase")
 
-print(f"Le nombre de mots dans le texte est de : {mots}")
-print(f"Le nombre de phrases dans le texte est de : {phrases}")
+# Question 3.3
+df = df[df["texte"].str.len() >= 20]
+#print(df.shape[0])
+
+# Question 3.4
+corpus = " ".join(df["texte"])
+#print(corpus)
