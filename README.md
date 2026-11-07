@@ -1,2 +1,2 @@
 # Projet-python
-Projet de M1 en codé en python en binôme
+Projet de M1 codé en python en binôme
