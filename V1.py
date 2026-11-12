@@ -6,6 +6,7 @@ import xmltodict
 import pandas as pd
 from Document import Document
 from Author import Author
+from Corpus import Corpus
 
 id2doc = {}
 
@@ -192,12 +193,19 @@ for id, document in id2doc.items():
             id2aut[auteur] = Author(auteur)
             id2aut[auteur].add(id, document)
 
-#print("Nombre d'auteurs :", len(id2aut)) # -> Nombre d'auteurs
-#print(id2aut[list(id2aut.keys())[0]]) # -> Premier objet auteur
-
 # Question 2.4
 auteur = input("Veuillez saisir le nom d'un auteur : ")
 if auteur in id2aut:
     print(f"Nombre de documents : {id2aut[auteur].ndoc}\n{id2aut[auteur].taille_moyenne_doc()}")
 else:
     print("Auteur inexistant")
+
+# PARTIE 3
+# Question 3.4
+corpus_test = Corpus('Corpus_test', id2aut, id2doc)
+print(corpus_test)
+corpus_test.save()
+
+corpus_charge = Corpus("Corpus_charge")
+corpus_charge.load("Corpus_test.csv")
+print(corpus_charge)
