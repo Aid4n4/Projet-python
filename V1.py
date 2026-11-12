@@ -5,6 +5,7 @@ import html
 import xmltodict
 import pandas as pd
 from Document import Document
+from Author import Author
 
 id2doc = {}
 
@@ -171,3 +172,32 @@ df = df[df["texte"].str.len() >= 20]
 # Question 3.4
 corpus = " ".join(df["texte"])
 #print(corpus)
+
+# TD4
+# PARTIE 2
+# Question 2.3
+id2aut = {}
+
+for id, document in id2doc.items():
+    if not document.auteur:
+        continue
+    auteurs = document.auteur.split(',')
+    for auteur in auteurs:
+        auteur = auteur.strip()
+        if not auteur:
+            continue
+        if auteur in id2aut:
+            id2aut[auteur].add(id, document)
+        else:
+            id2aut[auteur] = Author(auteur)
+            id2aut[auteur].add(id, document)
+
+#print("Nombre d'auteurs :", len(id2aut)) # -> Nombre d'auteurs
+#print(id2aut[list(id2aut.keys())[0]]) # -> Premier objet auteur
+
+# Question 2.4
+auteur = input("Veuillez saisir le nom d'un auteur : ")
+if auteur in id2aut:
+    print(f"Nombre de documents : {id2aut[auteur].ndoc}\n{id2aut[auteur].taille_moyenne_doc()}")
+else:
+    print("Auteur inexistant")
