@@ -4,8 +4,11 @@ import json
 import html
 import xmltodict
 import pandas as pd
+from Document import Document
 
-'''# PARTIE 1
+id2doc = {}
+
+# PARTIE 1
 # Question 1.1
 docs_hacker_news = []
 
@@ -29,17 +32,27 @@ data = json.loads(data)
 
 #print(data.keys()) # -> champs disponibles
 
+#article = data["hits"][0]
+#print(article.keys()) # -> champs disponibles pour un article
+
 #print(type(data["hits"])) # -> liste des publications
 
 #print(len(data["hits"])) # -> nombre de publications
 
-for article in data["hits"]:
-    if article.get("story_text"):
-        article["story_text"] = article["story_text"].replace("<p>", " ")
-        article["story_text"] = html.unescape(article["story_text"])
-        docs_hacker_news.append(article["story_text"])
+for i, article in enumerate(data["hits"]):
+    titre = article.get("title")
+    auteur = article.get("author")
+    date = article.get("created_at")
+    url = article.get("url")
+    texte = article.get("story_text")
+    if texte:
+        texte = texte.replace("<p>", " ")
+        texte = html.unescape(texte)
+        docs_hacker_news.append(texte)
     else:
-        docs_hacker_news.append(article["title"])
+        texte = titre
+        docs_hacker_news.append(titre)
+    id2doc[i+1] = Document(titre, auteur, date, url, texte)
 
 print("Liste des articles :")
 for i in range(len(docs_hacker_news)):
@@ -69,20 +82,42 @@ data = xmltodict.parse(data)
 
 #print(data["feed"].keys()) # -> champs disponibles
 
+#article = data["feed"]["entry"][0]
+#print(article.keys()) # -> champs disponibles pour un article
+
 #print(type(data["feed"]["entry"])) # -> liste des publications
 
 #print(len(data["feed"]["entry"])) # -> nombre de publications
 
-for article in data["feed"]["entry"]:
-    if article.get("summary"):
-        article["summary"] = article["summary"].replace("\n", " ")
-        docs_arxiv.append(article["summary"])
+decalage = len(id2doc)
+
+for i, article in enumerate(data["feed"]["entry"]):
+    titre = article.get("title")
+    auteur = article.get("author")
+    if auteur is None:
+        auteur = ""
+    elif isinstance(auteur, list):
+        auteur = ", ".join([nom['name'] for nom in auteur])
     else:
-        docs_arxiv.append(article["title"])
+        auteur = auteur['name']
+    date = article.get("published")
+    url = article.get("id")
+    texte = article.get("summary")
+    if texte:
+        texte = texte.replace("\n", " ")
+        docs_arxiv.append(texte)
+    else:
+        texte = titre
+        docs_arxiv.append(titre)
+    id2doc[i + decalage + 1] = Document(titre, auteur, date, url, texte)
 
 print("Liste des articles :")
 for i in range(len(docs_arxiv)):
     print(f"{i+1} - {docs_arxiv[i]}")
+
+print("Nombre de documents :", len(id2doc))
+print("Premier document :", id2doc[1])
+print("Dernier document :", id2doc[len(id2doc)])
 
 # PARTIE 2
 # Question 2.1
@@ -101,7 +136,7 @@ df = pd.DataFrame({"id":identifiant, "texte":texte, "origine":origine})
 #print(df)
 
 # Question 2.2
-df.to_csv("corpus.csv", sep='\t', index=False)'''
+df.to_csv("corpus.csv", sep='\t', index=False)
 
 # Question 2.3
 df = pd.read_csv("corpus.csv", sep='\t')
