@@ -1,5 +1,5 @@
 import pandas as pd               # pour sauvegarder/charger le corpus sous forme de tableau (CSV)
-from Document import Document     # pour recréer des objets Document lors du chargement
+from Document import Document, HackerNewsDocument, ArxivDocument     # pour recréer des objets Document lors du chargement
 from Author import Author         # pour recréer des objets Author lors du chargement
 
 # PARTIE 3
@@ -26,13 +26,13 @@ class Corpus:
         # [:ndoc] ne garde que les ndoc premiers ; enumerate donne le numéro d'affichage
         for i, doc in enumerate(documents[:ndoc]):
             # f"{doc}" appelle la méthode __str__ de Document (affiche le titre)
-            print(f"{i+1} - {doc}")
+            print(f"{i+1} - [{doc.getType()}] {doc}")
 
     # Même principe, mais trié par ordre alphabétique des titres
     def afficher_par_titre(self, ndoc):
         documents = sorted(self.id2doc.values(), key=lambda doc: doc.titre)
         for i, doc in enumerate(documents[:ndoc]):
-            print(f"{i+1} - {doc}")
+            print(f"{i+1} - [{doc.getType()}] {doc}")
 
     # Représentation du corpus, utilisée par print(corpus)
     # (Corpus n'a pas de __str__, Python se rabat donc sur __repr__)
@@ -45,14 +45,20 @@ class Corpus:
         # On construit une liste de dictionnaires : un dictionnaire par document
         donnees = []
         for id, doc in self.id2doc.items():
-            donnees.append({
+            ligne = {
                 "id": id,
                 "titre": doc.titre,
                 "auteur": doc.auteur,
                 "date": doc.date,
                 "url": doc.url,
                 "texte": doc.texte
-            })
+            }
+            if isinstance(doc, HackerNewsDocument):
+                ligne["score"] = doc.score
+                ligne["nb_commentaires"] = doc.nb_commentaires
+            elif isinstance(doc, ArxivDocument):
+                ligne["co_auteurs"] = ','.join(doc.co_auteurs)
+            donnees.append(ligne)
         # Chaque dictionnaire devient une ligne du DataFrame, chaque clef une colonne
         df = pd.DataFrame(donnees)
         # Séparateur tabulation (comme dans le script principal), sans écrire l'index de pandas
@@ -71,7 +77,13 @@ class Corpus:
             date = ligne['date']
             url = ligne['url']
             texte = ligne['texte']
-            id2doc[id] = Document(titre, auteur, date, url, texte)
+            # Vérifier si le document est un document Hacker News ou arXiv
+            if 'score' in ligne and not pd.isna(ligne['score']):
+                id2doc[id] = HackerNewsDocument(titre, auteur, date, url, texte, int(ligne['score']), int(ligne['nb_commentaires']))
+            elif 'co_auteurs' in ligne and not pd.isna(ligne['co_auteurs']):
+                id2doc[id] = ArxivDocument(titre, auteur, date, url, texte, ligne['co_auteurs'].split(','))
+            else:
+                id2doc[id] = Document(titre, auteur, date, url, texte)
 
         # Reconstruction du dictionnaire nom d'auteur -> Author (même logique que dans le script principal)
         authors = {}
