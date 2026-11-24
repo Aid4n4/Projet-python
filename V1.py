@@ -7,6 +7,7 @@ import pandas as pd              # pour manipuler le corpus sous forme de tablea
 from Document import Document, HackerNewsDocument, ArxivDocument    # classe maison représentant un document
 from Author import Author        # classe maison représentant un auteur
 from Corpus import Corpus        # classe maison représentant l'ensemble du corpus
+from DocumentFactory import DocumentFactory
 
 # Dictionnaire qui associe un identifiant (entier) à chaque objet Document
 id2doc = {}
@@ -69,7 +70,16 @@ for i, article in enumerate(data["hits"]):
         texte = titre
         docs_hacker_news.append(titre)
     # On crée le Document et on le range dans id2doc (ids à partir de 1)
-    id2doc[i+1] = HackerNewsDocument(titre, auteur, date, url, texte, score, nb_commentaires)
+    id2doc[i+1] = DocumentFactory.creer_document(
+        "HackerNews",
+        titre=titre,
+        auteur=auteur,
+        date=date,
+        url=url,
+        texte=texte,
+        score=score,
+        nb_commentaires=nb_commentaires
+    )
 
 # Affichage numéroté des textes récupérés
 print("Liste des articles :")
@@ -140,7 +150,15 @@ for i, article in enumerate(data["feed"]["entry"]):
         texte = titre
         docs_arxiv.append(titre)
     # Les ids continuent après ceux de Hacker News (decalage + 1, decalage + 2, ...)
-    id2doc[i + decalage + 1] = ArxivDocument(titre, auteur, co_auteurs, date, url, texte)
+    id2doc[i + decalage + 1] = DocumentFactory.creer_document(
+        "Arxiv",
+        titre=titre,
+        auteur=auteur,
+        co_auteurs=co_auteurs,
+        date=date,
+        url=url,
+        texte=texte
+    )
 
 print("Liste des articles :")
 for i in range(len(docs_arxiv)):
