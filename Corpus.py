@@ -83,9 +83,9 @@ class Corpus:
             url = ligne['url']
             texte = ligne['texte']
             # Vérifier si le document est un document Hacker News ou arXiv
-            if ligne['type'] == "HackerNewsDocument":
+            if ligne['type'] == "Hacker News":
                 id2doc[id] = HackerNewsDocument(titre, auteur, date, url, texte, int(ligne['score']), int(ligne['nb_commentaires']))
-            elif ligne['type'] == "ArxivDocument":
+            elif ligne['type'] == "Arxiv":
                 co_auteurs = [] if pd.isna(ligne['co_auteurs']) else ligne['co_auteurs'].split(',')
                 id2doc[id] = ArxivDocument(titre, auteur, co_auteurs, date, url, texte)
             else:
