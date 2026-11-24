@@ -251,13 +251,8 @@ else:
 # Question 3.4
 # Création du corpus à partir des auteurs et des documents
 corpus_test = Corpus('Corpus_test', id2aut, id2doc)
-# Affichage du corpus (appelle la méthode d'affichage de la classe Corpus)
 print(corpus_test)
-# Sauvegarde du corpus sur disque
 corpus_test.save()
 
-# Création d'un corpus vide, puis chargement depuis le fichier sauvegardé
-corpus_charge = Corpus("Corpus_charge")
-corpus_charge.load("Corpus_test.csv")
-# Affichage pour vérifier que le corpus chargé est identique à celui sauvegardé
-print(corpus_charge)
+corpus_test.load("Corpus_test.csv")
+print(corpus_test)
