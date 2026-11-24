@@ -5,17 +5,21 @@ from Author import Author         # pour recréer des objets Author lors du char
 # PARTIE 3
 # Classe qui représente l'ensemble des documents et des auteurs
 class Corpus:
-    # Question 3.1
-    # Constructeur : nom obligatoire, auteurs et documents optionnels (None par défaut)
+    _instance = None
+    
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, nom, authors=None, id2doc=None):
-        self.nom = nom
-        # On évite d'utiliser {} comme valeur par défaut dans la signature (piège classique de Python :
-        # le même dictionnaire serait partagé entre tous les objets). On crée donc un nouveau dict ici.
-        self.authors = authors if authors is not None else {}
-        self.id2doc = id2doc if id2doc is not None else {}
-        # Nombre de documents et d'auteurs, calculés à la création
-        self.ndoc = len(self.id2doc)
-        self.naut = len(self.authors)
+        if not hasattr(self, '_initialise'):
+            self.nom = nom
+            self.authors = authors if authors is not None else {}
+            self.id2doc = id2doc if id2doc is not None else {}
+            self.ndoc = len(self.id2doc)
+            self.naut = len(self.authors)
+            self._initialise = True
 
     # Question 3.2
     # Affiche les ndoc premiers documents triés par date croissante
@@ -51,7 +55,8 @@ class Corpus:
                 "auteur": doc.auteur,
                 "date": doc.date,
                 "url": doc.url,
-                "texte": doc.texte
+                "texte": doc.texte,
+                "type": doc.getType()
             }
             if isinstance(doc, HackerNewsDocument):
                 ligne["score"] = doc.score
@@ -78,31 +83,30 @@ class Corpus:
             url = ligne['url']
             texte = ligne['texte']
             # Vérifier si le document est un document Hacker News ou arXiv
-            if 'score' in ligne and not pd.isna(ligne['score']):
+            if ligne['type'] == "HackerNewsDocument":
                 id2doc[id] = HackerNewsDocument(titre, auteur, date, url, texte, int(ligne['score']), int(ligne['nb_commentaires']))
-            elif 'co_auteurs' in ligne and not pd.isna(ligne['co_auteurs']):
-                id2doc[id] = ArxivDocument(titre, auteur, date, url, texte, ligne['co_auteurs'].split(','))
+            elif ligne['type'] == "ArxivDocument":
+                co_auteurs = [] if pd.isna(ligne['co_auteurs']) else ligne['co_auteurs'].split(',')
+                id2doc[id] = ArxivDocument(titre, auteur, co_auteurs, date, url, texte)
             else:
                 id2doc[id] = Document(titre, auteur, date, url, texte)
 
         # Reconstruction du dictionnaire nom d'auteur -> Author (même logique que dans le script principal)
         authors = {}
+
         for id, document in id2doc.items():
-            # Une valeur vide dans le CSV est relue comme NaN : pd.isna() la détecte
-            # (le test "if not document.auteur" ne marcherait pas, car NaN est considéré comme vrai)
-            if pd.isna(document.auteur):
-                continue
-            # Plusieurs auteurs possibles, séparés par des virgules
-            auteurs = document.auteur.split(',')
+            auteurs = []
+
+            if not pd.isna(document.auteur):
+                auteurs.append(document.auteur)
+
+            if isinstance(document, ArxivDocument):
+                auteurs.extend(document.co_auteurs)
+
             for auteur in auteurs:
-                auteur = auteur.strip()
-                if not auteur:
-                    continue
                 if auteur in authors:
-                    # Auteur déjà connu : on ajoute le document
                     authors[auteur].add(id, document)
                 else:
-                    # Nouvel auteur : on crée l'objet Author puis on lui ajoute le document
                     authors[auteur] = Author(auteur)
                     authors[auteur].add(id, document)
 
