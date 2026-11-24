@@ -48,7 +48,7 @@ class HackerNewsDocument(Document):
         return self.nb_commentaires
 
     def getType(self):
-        return "HackerNewsDocument"
+        return "Hacker News"
 
     #Mutateurs (set) : modifient la valeur
     def set_score(self, score):
@@ -76,7 +76,7 @@ class ArxivDocument(Document):
         return self.co_auteurs
 
     def getType(self):
-        return "ArxivDocument"
+        return "Arxiv"
 
     def set_co_auteurs(self, co_auteurs):
         self.co_auteurs = co_auteurs
