@@ -32,9 +32,8 @@ class Document:
 
 #print(doc)
 
-#TD 5 : PARTIE 1
-
-#Question 1.1
+# TD 5 : PARTIE 1
+# Question 1.1
 class HackerNewsDocument(Document):
     def __init__(self, titre, auteur, date, url, texte, score, nb_commentaires):
         super().__init__(titre, auteur, date, url, texte) #la mère s'occupe des 5 champs communs
@@ -69,7 +68,7 @@ class HackerNewsDocument(Document):
 #Partie 2
 #question 2.1
 class ArxivDocument(Document):
-    def __init__(self, titre, auteur, date, url, texte, co_auteurs):
+    def __init__(self, titre, auteur, co_auteurs, date, url, texte):
         super().__init__(titre, auteur, date, url, texte)
         self.co_auteurs = co_auteurs #liste de noms
 
