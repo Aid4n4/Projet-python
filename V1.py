@@ -4,7 +4,7 @@ import json                      # pour décoder les réponses au format JSON (H
 import html                      # pour convertir les entités HTML (&amp;, &#x27;...) en vrais caractères
 import xmltodict                 # pour convertir le XML renvoyé par arXiv en dictionnaire Python
 import pandas as pd              # pour manipuler le corpus sous forme de tableau
-from Document import Document    # classe maison représentant un document
+from Document import Document, HackerNewsDocument, ArxivDocument    # classe maison représentant un document
 from Author import Author        # classe maison représentant un auteur
 from Corpus import Corpus        # classe maison représentant l'ensemble du corpus
 
@@ -56,6 +56,8 @@ for i, article in enumerate(data["hits"]):
     date = article.get("created_at")
     url = article.get("url")
     texte = article.get("story_text")
+    score = article.get("points")
+    nb_commentaires = article.get("num_comments")
     if texte:
         # Le texte contient du HTML : on remplace les balises <p> par des espaces
         texte = texte.replace("<p>", " ")
@@ -67,7 +69,7 @@ for i, article in enumerate(data["hits"]):
         texte = titre
         docs_hacker_news.append(titre)
     # On crée le Document et on le range dans id2doc (ids à partir de 1)
-    id2doc[i+1] = Document(titre, auteur, date, url, texte)
+    id2doc[i+1] = HackerNewsDocument(titre, auteur, date, url, texte, score, nb_commentaires)
 
 # Affichage numéroté des textes récupérés
 print("Liste des articles :")
@@ -114,16 +116,18 @@ decalage = len(id2doc)
 for i, article in enumerate(data["feed"]["entry"]):
     titre = article.get("title")
     # Le champ "author" a trois formes possibles selon l'article :
-    auteur = article.get("author")
-    if auteur is None:
-        # aucun auteur renseigné
-        auteur = ""
-    elif isinstance(auteur, list):
-        # plusieurs auteurs : liste de dictionnaires -> on les joint en une chaîne séparée par des virgules
-        auteur = ", ".join([nom['name'] for nom in auteur])
+    auteurs = article.get("author")
+    if auteurs is None:
+        auteurs = []
+    elif not isinstance(auteurs, list):
+        auteurs = [auteurs]
+    noms_auteurs = [nom['name'] for nom in auteurs]
+    if noms_auteurs:
+        auteur = noms_auteurs[0]
+        co_auteurs = noms_auteurs[1:]
     else:
-        # un seul auteur : un dictionnaire avec la clef 'name'
-        auteur = auteur['name']
+        auteur = None
+        co_auteurs = []
     date = article.get("published")
     url = article.get("id")
     texte = article.get("summary")
@@ -136,7 +140,7 @@ for i, article in enumerate(data["feed"]["entry"]):
         texte = titre
         docs_arxiv.append(titre)
     # Les ids continuent après ceux de Hacker News (decalage + 1, decalage + 2, ...)
-    id2doc[i + decalage + 1] = Document(titre, auteur, date, url, texte)
+    id2doc[i + decalage + 1] = ArxivDocument(titre, auteur, co_auteurs, date, url, texte)
 
 print("Liste des articles :")
 for i in range(len(docs_arxiv)):
@@ -222,21 +226,15 @@ corpus = " ".join(df["texte"])
 id2aut = {}
 
 for id, document in id2doc.items():
-    # On ignore les documents sans auteur (None ou chaîne vide)
-    if not document.auteur:
-        continue
-    # Un document arXiv peut avoir plusieurs auteurs séparés par des virgules
-    auteurs = document.auteur.split(',')
+    auteurs = []
+    if document.auteur:
+        auteurs.append(document.auteur)
+    if isinstance(document, ArxivDocument):
+        auteurs.extend(document.co_auteurs)
     for auteur in auteurs:
-        # On enlève les espaces autour du nom
-        auteur = auteur.strip()
-        if not auteur:
-            continue
         if auteur in id2aut:
-            # Auteur déjà rencontré : on lui ajoute simplement ce document
             id2aut[auteur].add(id, document)
         else:
-            # Nouvel auteur : on crée son objet Author puis on lui ajoute le document
             id2aut[auteur] = Author(auteur)
             id2aut[auteur].add(id, document)
 
